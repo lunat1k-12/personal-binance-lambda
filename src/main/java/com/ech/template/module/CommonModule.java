@@ -43,7 +43,7 @@ public class CommonModule extends AbstractModule {
     @Singleton
     public BinanceClient buildBinanceClient(ObjectMapper objectMapper) throws JsonProcessingException {
         if (isLocalLambda) {
-            // Build client with local variables
+            log.info("Build binance client with local variables");
             return new BinanceClient(new SpotClientImpl(
                     System.getenv("SPOT_API_KEY"),
                     System.getenv("SPOT_SECRET")),
@@ -51,6 +51,7 @@ public class CommonModule extends AbstractModule {
             );
         }
 
+        log.info("Build binance client with Secret variables");
         // retrieve keys from Secret Manager
         try (SecretsManagerClient secretsClient = SecretsManagerClient.create()) {
             // Define the secret name
@@ -65,6 +66,7 @@ public class CommonModule extends AbstractModule {
             Map<String, String> secretMap =
                     objectMapper.readValue(secretString, new TypeReference<Map<String, String>>() {});
 
+            log.info("Secrets Map: {}", secretMap);
             return new BinanceClient(new SpotClientImpl(
                     secretMap.get("SPOT_API_KEY"),
                     secretMap.get("SPOT_SECRET")),
