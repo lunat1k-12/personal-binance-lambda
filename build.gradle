@@ -1,0 +1,43 @@
+plugins {
+    id 'java'
+}
+
+group = 'com.ech.template'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+    maven { url 'https://jitpack.io' }
+}
+
+dependencies {
+    implementation 'io.github.binance:binance-connector-java:3.4.0'
+    implementation 'org.projectlombok:lombok:1.18.34' // Use the latest version
+    annotationProcessor 'org.projectlombok:lombok:1.18.34' // For annotation processing
+    implementation 'com.amazonaws:aws-lambda-java-core:1.0.0'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.18.1'
+    implementation 'org.apache.logging.log4j:log4j-api:2.20.0'  // Use latest version
+    implementation 'org.apache.logging.log4j:log4j-core:2.20.0'
+    implementation 'com.google.inject:guice:7.0.0'
+
+//    implementation 'com.amazonaws:aws-java-sdk-dynamodb:1.12.779'
+    implementation 'software.amazon.awssdk:dynamodb:2.29.23'
+    implementation 'software.amazon.awssdk:dynamodb-enhanced:2.20.39'// Use the latest version
+
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+jar {
+    // Ensure dependencies are included in the JAR
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+
+    // Add a duplicate handling strategy
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
