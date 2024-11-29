@@ -100,7 +100,7 @@ public class CommonModule extends AbstractModule {
         }
 
         return DynamoDbClient.builder()
-                .region(Region.US_EAST_1)
+                .region(Region.EU_WEST_2)
                 .build();
     }
 
