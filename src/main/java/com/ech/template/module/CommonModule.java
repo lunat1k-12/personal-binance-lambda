@@ -53,7 +53,9 @@ public class CommonModule extends AbstractModule {
 
         log.info("Build binance client with Secret variables");
         // retrieve keys from Secret Manager
-        try (SecretsManagerClient secretsClient = SecretsManagerClient.create()) {
+        try (SecretsManagerClient secretsClient = SecretsManagerClient.builder()
+                .region(Region.US_EAST_1)
+                .build()) {
             // Define the secret name
             String secretName = "CryptoLambda";
 
@@ -66,7 +68,6 @@ public class CommonModule extends AbstractModule {
             Map<String, String> secretMap =
                     objectMapper.readValue(secretString, new TypeReference<Map<String, String>>() {});
 
-            log.info("Secrets Map: {}", secretMap);
             return new BinanceClient(new SpotClientImpl(
                     secretMap.get("SPOT_API_KEY"),
                     secretMap.get("SPOT_SECRET")),
