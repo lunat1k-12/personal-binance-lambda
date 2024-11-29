@@ -22,7 +22,8 @@ dependencies {
 
 //    implementation 'com.amazonaws:aws-java-sdk-dynamodb:1.12.779'
     implementation 'software.amazon.awssdk:dynamodb:2.29.23'
-    implementation 'software.amazon.awssdk:dynamodb-enhanced:2.20.39'// Use the latest version
+    implementation 'software.amazon.awssdk:dynamodb-enhanced:2.29.23'// Use the latest version
+    implementation 'software.amazon.awssdk:secretsmanager:2.29.23'
 
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'

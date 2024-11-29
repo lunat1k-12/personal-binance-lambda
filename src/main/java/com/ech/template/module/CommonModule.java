@@ -5,6 +5,8 @@ import com.ech.template.model.dynamodb.CoinOperationRecord;
 import com.ech.template.model.dynamodb.WalletCoin;
 import com.ech.template.service.BinanceClient;
 import com.ech.template.service.DynamoDbService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.AbstractModule;
@@ -23,22 +25,55 @@ import software.amazon.awssdk.services.dynamodb.model.ListTablesRequest;
 import software.amazon.awssdk.services.dynamodb.model.ListTablesResponse;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
+import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
+import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
 import software.amazon.awssdk.utils.CollectionUtils;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 
 @Log4j2
 public class CommonModule extends AbstractModule {
 
+    private final boolean isLocalLambda = System.getenv("BINANCE_LOCAL_DYNAMO").equals(Boolean.TRUE.toString());
+
     @Provides
     @Singleton
-    public BinanceClient buildBinanceClient(ObjectMapper objectMapper) {
-        return new BinanceClient(new SpotClientImpl(
-                System.getenv("SPOT_API_KEY"),
-                System.getenv("SPOT_SECRET")),
-                objectMapper
-        );
+    public BinanceClient buildBinanceClient(ObjectMapper objectMapper) throws JsonProcessingException {
+        if (isLocalLambda) {
+            // Build client with local variables
+            return new BinanceClient(new SpotClientImpl(
+                    System.getenv("SPOT_API_KEY"),
+                    System.getenv("SPOT_SECRET")),
+                    objectMapper
+            );
+        }
+
+        // retrieve keys from Secret Manager
+        try (SecretsManagerClient secretsClient = SecretsManagerClient.create()) {
+            // Define the secret name
+            String secretName = "CryptoLambda";
+
+            GetSecretValueRequest request = GetSecretValueRequest.builder()
+                    .secretId(secretName)
+                    .build();
+            GetSecretValueResponse response = secretsClient.getSecretValue(request);
+            String secretString = response.secretString();
+
+            Map<String, String> secretMap =
+                    objectMapper.readValue(secretString, new TypeReference<Map<String, String>>() {});
+
+            return new BinanceClient(new SpotClientImpl(
+                    secretMap.get("SPOT_API_KEY"),
+                    secretMap.get("SPOT_SECRET")),
+                    objectMapper
+            );
+        } catch (Exception e) {
+            log.error("Failed to retrieve secret", e);
+            throw e;
+        }
     }
 
     @Provides
@@ -52,7 +87,7 @@ public class CommonModule extends AbstractModule {
     @Singleton
     public DynamoDbClient dynamoDbClient() {
 
-        if (System.getenv("BINANCE_LOCAL_DYNAMO").equals(Boolean.TRUE.toString())) {
+        if (isLocalLambda) {
             DynamoDbClient client = DynamoDbClient.builder()
                     .endpointOverride(URI.create("http://localhost:8000"))  // Local endpoint
                     .region(Region.US_EAST_1)                               // Required for AWS SDK
