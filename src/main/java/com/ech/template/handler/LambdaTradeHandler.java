@@ -8,6 +8,7 @@ import com.ech.template.service.BinanceClient;
 import com.ech.template.model.CoinPrice;
 import com.ech.template.module.CommonModule;
 import com.ech.template.service.DynamoDbService;
+import com.ech.template.service.IpCheckClient;
 import com.ech.template.service.PriceDiffService;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -29,12 +30,14 @@ public class LambdaTradeHandler implements RequestHandler<LambdaTradeHandler.Lam
     private final BinanceClient client;
     private final DynamoDbService dynamoDbService;
     private final PriceDiffService priceDiffService;
+    private final IpCheckClient ipCheckClient;
 
     public LambdaTradeHandler() {
         Injector injector = Guice.createInjector(new CommonModule());
         this.client = injector.getInstance(BinanceClient.class);
         this.dynamoDbService = injector.getInstance(DynamoDbService.class);
         this.priceDiffService = injector.getInstance(PriceDiffService.class);
+        this.ipCheckClient = injector.getInstance(IpCheckClient.class);
     }
 
     @Override
@@ -92,6 +95,7 @@ public class LambdaTradeHandler implements RequestHandler<LambdaTradeHandler.Lam
                             .buyCoinPrice("1")
                             .diffPercent(priceDiffService.getPriceDiff(coin5MinPrice,
                                     dynamoDbService.getOperationById(lastOperationId)))
+                            .ipAddress(ipCheckClient.getMyIp())
                     .build());
             return;
         }
@@ -107,6 +111,7 @@ public class LambdaTradeHandler implements RequestHandler<LambdaTradeHandler.Lam
                 .buyCoinPrice(convertCoin.getLastPrice().toPlainString())
                 .diffPercent(priceDiffService.getPriceDiff(coin5MinPrice,
                         dynamoDbService.getOperationById(lastOperationId)))
+                .ipAddress(ipCheckClient.getMyIp())
                 .build());
     }
 }

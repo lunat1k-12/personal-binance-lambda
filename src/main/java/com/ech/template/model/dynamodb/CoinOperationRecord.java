@@ -29,6 +29,8 @@ public class CoinOperationRecord {
 
     private String diffPercent;
 
+    private String ipAddress;
+
     @DynamoDbPartitionKey
     public Long getId() {
         return id;
@@ -57,5 +59,10 @@ public class CoinOperationRecord {
     @DynamoDbAttribute("DiffPercent")
     public String getDiffPercent() {
         return diffPercent;
+    }
+
+    @DynamoDbAttribute("IPAddress")
+    public String getIpAddress() {
+        return ipAddress;
     }
 }
