@@ -5,6 +5,7 @@ import com.ech.template.model.dynamodb.CoinOperationRecord;
 import com.ech.template.model.dynamodb.WalletCoin;
 import com.ech.template.service.BinanceClient;
 import com.ech.template.service.DynamoDbService;
+import com.ech.template.service.PriceDiffService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -110,6 +111,12 @@ public class CommonModule extends AbstractModule {
         return DynamoDbEnhancedClient.builder()
                 .dynamoDbClient(dynamoDbClient)
                 .build();
+    }
+
+    @Provides
+    @Singleton
+    public PriceDiffService buildPriceDiffService() {
+        return new PriceDiffService();
     }
 
     @Provides

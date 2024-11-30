@@ -8,6 +8,7 @@ import com.ech.template.service.BinanceClient;
 import com.ech.template.model.CoinPrice;
 import com.ech.template.module.CommonModule;
 import com.ech.template.service.DynamoDbService;
+import com.ech.template.service.PriceDiffService;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import lombok.extern.log4j.Log4j2;
@@ -27,11 +28,13 @@ public class LambdaTradeHandler implements RequestHandler<LambdaTradeHandler.Lam
 
     private final BinanceClient client;
     private final DynamoDbService dynamoDbService;
+    private final PriceDiffService priceDiffService;
 
     public LambdaTradeHandler() {
         Injector injector = Guice.createInjector(new CommonModule());
         this.client = injector.getInstance(BinanceClient.class);
         this.dynamoDbService = injector.getInstance(DynamoDbService.class);
+        this.priceDiffService = injector.getInstance(PriceDiffService.class);
     }
 
     @Override
@@ -73,6 +76,10 @@ public class LambdaTradeHandler implements RequestHandler<LambdaTradeHandler.Lam
 
         dynamoDbService.deleteCoinFromWallet(coin5MinPrice.getCoinName());
         if (CollectionUtils.isNullOrEmpty(growingCoins)) {
+            if (USDT_COIN_NAME.equals(coin5MinPrice.getCoinName())) {
+                log.info("Keep USDT coin");
+                return;
+            }
             log.info("No growing coins, converting to USDT");
             dynamoDbService.saveCoin(USDT_COIN_NAME);
             dynamoDbService.saveOperation(CoinOperationRecord.builder()
@@ -81,6 +88,8 @@ public class LambdaTradeHandler implements RequestHandler<LambdaTradeHandler.Lam
                             .sellCoinPrice(coin5MinPrice.getLastPrice().toPlainString())
                             .buyCoinName(USDT_COIN_NAME)
                             .buyCoinPrice("1")
+                            .diffPercent(priceDiffService.getPriceDiff(coin5MinPrice,
+                                    dynamoDbService.getPreviousOperation(coin5MinPrice.getCoinName())))
                     .build());
             return;
         }
@@ -94,6 +103,8 @@ public class LambdaTradeHandler implements RequestHandler<LambdaTradeHandler.Lam
                 .sellCoinPrice(coin5MinPrice.getLastPrice().toPlainString())
                 .buyCoinName(convertCoin.getCoinName())
                 .buyCoinPrice(convertCoin.getLastPrice().toPlainString())
+                .diffPercent(priceDiffService.getPriceDiff(coin5MinPrice,
+                        dynamoDbService.getPreviousOperation(coin5MinPrice.getCoinName())))
                 .build());
     }
 }

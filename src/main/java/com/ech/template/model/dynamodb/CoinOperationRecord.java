@@ -27,6 +27,8 @@ public class CoinOperationRecord {
 
     private String buyCoinPrice;
 
+    private String diffPercent;
+
     @DynamoDbPartitionKey
     public Long getId() {
         return id;
@@ -50,5 +52,10 @@ public class CoinOperationRecord {
     @DynamoDbAttribute("BuyCoinPrice")
     public String getBuyCoinPrice() {
         return buyCoinPrice;
+    }
+
+    @DynamoDbAttribute("DiffPercent")
+    public String getDiffPercent() {
+        return diffPercent;
     }
 }
