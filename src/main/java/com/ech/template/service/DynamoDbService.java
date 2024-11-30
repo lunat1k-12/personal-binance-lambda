@@ -48,6 +48,7 @@ public class DynamoDbService {
 
     public void saveOperation(CoinOperationRecord operation) {
         operationTable.putItem(operation);
+        log.info("Store operation: {}", operation);
     }
 
     public CoinOperationRecord getOperationById(Long id) {
