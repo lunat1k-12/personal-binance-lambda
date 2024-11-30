@@ -37,6 +37,10 @@ public class LambdaTradeHandler implements RequestHandler<LambdaTradeHandler.Lam
         this.priceDiffService = injector.getInstance(PriceDiffService.class);
     }
 
+    public static void main(String[] args) {
+        new LambdaTradeHandler().handleRequest(new LambdaInput(), null);
+    }
+
     @Override
     public Void handleRequest(LambdaInput lambdaInput, Context context) {
 

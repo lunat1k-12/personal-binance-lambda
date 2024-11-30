@@ -10,7 +10,15 @@ import java.math.RoundingMode;
 @Log4j2
 public class PriceDiffService {
 
+    private static final String NA = "N/A";
+
     public String getPriceDiff(CoinPrice currentPrice, CoinOperationRecord oldPriceOperation) {
+
+        if (oldPriceOperation == null) {
+            log.info("Can't calculate diff for {}", currentPrice);
+            return NA;
+        }
+
         BigDecimal oldPrice = new BigDecimal(oldPriceOperation.getBuyCoinPrice());
         BigDecimal newPrice = currentPrice.getLastPrice();
 
