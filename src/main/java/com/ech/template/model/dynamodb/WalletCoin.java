@@ -18,10 +18,16 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbParti
 public class WalletCoin {
 
     private String name;
+    private Long lastOperation;
 
     @DynamoDbPartitionKey
     @DynamoDbAttribute("CoinName")
     public String getName() {
         return name;
+    }
+
+    @DynamoDbAttribute("LastOperation")
+    public Long getLastOperation() {
+        return lastOperation;
     }
 }

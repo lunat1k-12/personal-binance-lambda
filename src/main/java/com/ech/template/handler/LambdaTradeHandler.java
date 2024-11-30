@@ -74,37 +74,39 @@ public class LambdaTradeHandler implements RequestHandler<LambdaTradeHandler.Lam
                 .sorted(Comparator.comparing(CoinPrice::getPriceChangePercent, Comparator.reverseOrder()))
                 .toList();
 
+        Long lastOperationId = dynamoDbService.getCoin(coin5MinPrice.getCoinName()).getLastOperation();
         dynamoDbService.deleteCoinFromWallet(coin5MinPrice.getCoinName());
+        Long operationId = Instant.now().toEpochMilli();
         if (CollectionUtils.isNullOrEmpty(growingCoins)) {
             if (USDT_COIN_NAME.equals(coin5MinPrice.getCoinName())) {
                 log.info("Keep USDT coin");
                 return;
             }
             log.info("No growing coins, converting to USDT");
-            dynamoDbService.saveCoin(USDT_COIN_NAME);
+            dynamoDbService.saveCoin(USDT_COIN_NAME, operationId);
             dynamoDbService.saveOperation(CoinOperationRecord.builder()
-                            .id(Instant.now().toEpochMilli())
+                            .id(operationId)
                             .sellCoinName(coin5MinPrice.getCoinName())
                             .sellCoinPrice(coin5MinPrice.getLastPrice().toPlainString())
                             .buyCoinName(USDT_COIN_NAME)
                             .buyCoinPrice("1")
                             .diffPercent(priceDiffService.getPriceDiff(coin5MinPrice,
-                                    dynamoDbService.getPreviousOperation(coin5MinPrice.getCoinName())))
+                                    dynamoDbService.getOperationById(lastOperationId)))
                     .build());
             return;
         }
 
         CoinPrice convertCoin = growingCoins.getFirst();
         log.info("Convert {} to {}", coin5MinPrice.getCoinName(), convertCoin.getCoinName());
-        dynamoDbService.saveCoin(convertCoin.getCoinName());
+        dynamoDbService.saveCoin(convertCoin.getCoinName(), operationId);
         dynamoDbService.saveOperation(CoinOperationRecord.builder()
-                .id(Instant.now().toEpochMilli())
+                .id(operationId)
                 .sellCoinName(coin5MinPrice.getCoinName())
                 .sellCoinPrice(coin5MinPrice.getLastPrice().toPlainString())
                 .buyCoinName(convertCoin.getCoinName())
                 .buyCoinPrice(convertCoin.getLastPrice().toPlainString())
                 .diffPercent(priceDiffService.getPriceDiff(coin5MinPrice,
-                        dynamoDbService.getPreviousOperation(coin5MinPrice.getCoinName())))
+                        dynamoDbService.getOperationById(lastOperationId)))
                 .build());
     }
 }

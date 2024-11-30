@@ -5,12 +5,8 @@ import com.ech.template.model.dynamodb.WalletCoin;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
-import software.amazon.awssdk.enhanced.dynamodb.Expression;
-import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
-import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.enhanced.dynamodb.Key;
 
-import java.time.Instant;
-import java.util.Comparator;
 import java.util.List;
 
 @Log4j2
@@ -21,10 +17,15 @@ public class DynamoDbService {
     private final DynamoDbTable<CoinOperationRecord> operationTable;
 
     public void saveCoin(String coin) {
+        this.saveCoin(coin, null);
+    }
+
+    public void saveCoin(String coin, Long operationId) {
         walletCoinTable.putItem(WalletCoin.builder()
                 .name(coin)
+                .lastOperation(operationId)
                 .build());
-        log.info("Coin saved to wallet: " + coin);
+        log.info("Coin saved to wallet: {}", coin);
     }
 
     public void deleteCoinFromWallet(String coin) {
@@ -32,6 +33,12 @@ public class DynamoDbService {
                         .name(coin)
                 .build());
         log.info("Coin deleted from wallet: {}", coin);
+    }
+
+    public WalletCoin getCoin(String coin) {
+        return walletCoinTable.getItem(Key.builder()
+                        .partitionValue(coin)
+                .build());
     }
 
     public List<WalletCoin> loadDynamoWallet() {
@@ -43,17 +50,13 @@ public class DynamoDbService {
         operationTable.putItem(operation);
     }
 
-    public CoinOperationRecord getPreviousOperation(String coin) {
-        return operationTable.scan(ScanEnhancedRequest.builder()
-                        .filterExpression(Expression.builder()
-                                .expression("BuyCoinName = :coinName")
-                                .putExpressionValue(":coinName", AttributeValue.builder()
-                                        .s(coin)
-                                        .build())
-                                .build())
-                .build())
-                .items().stream()
-                .max(Comparator.comparing(CoinOperationRecord::getId))
-                .orElse(null);
+    public CoinOperationRecord getOperationById(Long id) {
+        if (id == null) {
+            return null;
+        }
+
+        return operationTable.getItem(Key.builder()
+                        .partitionValue(id)
+                .build());
     }
 }
