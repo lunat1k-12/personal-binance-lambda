@@ -44,15 +44,11 @@ public class DynamoDbService {
     }
 
     public CoinOperationRecord getPreviousOperation(String coin) {
-        Long milisForPreviousOperations = Instant.now().toEpochMilli() - 600_000;
         return operationTable.scan(ScanEnhancedRequest.builder()
                         .filterExpression(Expression.builder()
-                                .expression("BuyCoinName = :coinName AND id > :time")
+                                .expression("BuyCoinName = :coinName")
                                 .putExpressionValue(":coinName", AttributeValue.builder()
                                         .s(coin)
-                                        .build())
-                                .putExpressionValue(":time", AttributeValue.builder()
-                                        .n(milisForPreviousOperations.toString())
                                         .build())
                                 .build())
                 .build())
