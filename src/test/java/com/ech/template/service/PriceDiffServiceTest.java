@@ -34,7 +34,7 @@ public class PriceDiffServiceTest {
         String res = priceDiffService.getPriceDiff(price, record);
 
         // verify
-        assertEquals("-10,00%", res);
+        assertEquals("-10.00%", res);
     }
 
     @Test
@@ -53,7 +53,7 @@ public class PriceDiffServiceTest {
         String res = priceDiffService.getPriceDiff(price, record);
 
         // verify
-        assertEquals("10,00%", res);
+        assertEquals("10.00%", res);
     }
 
     @Test
@@ -72,6 +72,6 @@ public class PriceDiffServiceTest {
         String res = priceDiffService.getPriceDiff(price, record);
 
         // verify
-        assertEquals("-0,10%", res);
+        assertEquals("-0.10%", res);
     }
 }

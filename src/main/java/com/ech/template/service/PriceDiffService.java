@@ -6,6 +6,7 @@ import lombok.extern.log4j.Log4j2;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Locale;
 
 @Log4j2
 public class PriceDiffService {
@@ -31,6 +32,6 @@ public class PriceDiffService {
         } else {
             log.info("Coin price increased by {} %", result.toPlainString());
         }
-        return "%.2f%%".formatted(result.doubleValue());
+        return String.format(Locale.CANADA, "%.2f%%", result.doubleValue());
     }
 }
