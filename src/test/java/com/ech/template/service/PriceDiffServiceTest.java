@@ -51,7 +51,6 @@ public class PriceDiffServiceTest {
 
         // do
         String res = priceDiffService.getPriceDiff(price, record);
-        System.out.println("TEMP LOG: " + res);
 
         // verify
         assertEquals("10,00%", res);
