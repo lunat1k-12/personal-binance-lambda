@@ -55,4 +55,23 @@ public class PriceDiffServiceTest {
         // verify
         assertEquals("10,00%", res);
     }
+
+    @Test
+    public void testPriceDown() {
+        // given
+        CoinPrice price = new CoinPrice("ADAUSDT",
+                BigDecimal.ZERO, BigDecimal.ZERO,
+                BigDecimal.ZERO, BigDecimal.ZERO,
+                BigDecimal.valueOf(2.88000000));
+
+        CoinOperationRecord record = CoinOperationRecord.builder()
+                .buyCoinPrice("2.88300000")
+                .build();
+
+        // do
+        String res = priceDiffService.getPriceDiff(price, record);
+
+        // verify
+        assertEquals("-0,10%", res);
+    }
 }

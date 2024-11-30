@@ -23,7 +23,7 @@ public class PriceDiffService {
         BigDecimal newPrice = currentPrice.getLastPrice();
 
         BigDecimal result = newPrice.subtract(oldPrice)
-                .divide(oldPrice, 2, RoundingMode.HALF_UP)
+                .divide(oldPrice, 8, RoundingMode.HALF_UP)
                 .multiply(BigDecimal.valueOf(100));
 
         if (result.compareTo(BigDecimal.ZERO) < 0) {
