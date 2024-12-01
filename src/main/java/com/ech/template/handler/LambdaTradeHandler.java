@@ -96,7 +96,7 @@ public class LambdaTradeHandler implements RequestHandler<LambdaTradeHandler.Lam
                             .diffPercent(priceDiffService.getPriceDiff(coinMinPrice,
                                     dynamoDbService.getOperationById(lastOperationId)))
                             .ipAddress(ipCheckClient.getMyIp())
-                            .priceChangePercent(coinMinPrice.getPriceChangePercent().toPlainString())
+                            .priceChangePercent(BigDecimal.ZERO.toPlainString())
                     .build());
             return;
         }
@@ -113,7 +113,7 @@ public class LambdaTradeHandler implements RequestHandler<LambdaTradeHandler.Lam
                 .diffPercent(priceDiffService.getPriceDiff(coinMinPrice,
                         dynamoDbService.getOperationById(lastOperationId)))
                 .ipAddress(ipCheckClient.getMyIp())
-                .priceChangePercent(coinMinPrice.getPriceChangePercent().toPlainString())
+                .priceChangePercent(convertCoin.getPriceChangePercent().toPlainString())
                 .build());
     }
 }
