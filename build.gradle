@@ -23,9 +23,11 @@ dependencies {
     implementation 'software.amazon.awssdk:dynamodb:2.29.23'
     implementation 'software.amazon.awssdk:dynamodb-enhanced:2.29.23'// Use the latest version
     implementation 'software.amazon.awssdk:secretsmanager:2.29.23'
+    implementation 'software.amazon.awssdk:cloudwatch:2.29.23'
 
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.mockito:mockito-junit-jupiter:5.5.0'
 }
 
 test {

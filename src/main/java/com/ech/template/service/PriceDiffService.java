@@ -2,16 +2,30 @@ package com.ech.template.service;
 
 import com.ech.template.model.CoinPrice;
 import com.ech.template.model.dynamodb.CoinOperationRecord;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
+import software.amazon.awssdk.services.cloudwatch.model.Dimension;
+import software.amazon.awssdk.services.cloudwatch.model.MetricDatum;
+import software.amazon.awssdk.services.cloudwatch.model.PutMetricDataRequest;
+import software.amazon.awssdk.services.cloudwatch.model.StandardUnit;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Locale;
 
 @Log4j2
+@RequiredArgsConstructor
 public class PriceDiffService {
 
     private static final String NA = "N/A";
+    private static final String POSITIVE_METRIC_NAME = "PositiveSellCount";
+    private static final String NEGATIVE_METRIC_NAME = "NegativeSellCount";
+    private static final String METRIC_NAMESPACE = "Crypto";
+    private static final String LOCAL_METRIC_NAMESPACE = "CryptoTest";
+
+    private final CloudWatchClient cloudWatchClient;
+    private final Boolean isLocal;
 
     public String getPriceDiff(CoinPrice currentPrice, CoinOperationRecord oldPriceOperation) {
 
@@ -29,9 +43,31 @@ public class PriceDiffService {
 
         if (result.compareTo(BigDecimal.ZERO) < 0) {
             log.info("Coin price dropped by {} %", result.toPlainString());
+            this.submitMetric(currentPrice.getCoinName(), result.doubleValue(), NEGATIVE_METRIC_NAME);
         } else {
             log.info("Coin price increased by {} %", result.toPlainString());
+            this.submitMetric(currentPrice.getCoinName(), result.doubleValue(), POSITIVE_METRIC_NAME);
         }
         return String.format(Locale.CANADA, "%.2f%%", result.doubleValue());
+    }
+
+    private void submitMetric(String coinName, Double value, String metricName) {
+        MetricDatum metric = MetricDatum.builder()
+                .metricName(metricName)
+                .value(value)
+                .dimensions(Dimension.builder()
+                        .name("CoinName")
+                        .value(coinName)
+                        .build())
+                .unit(StandardUnit.COUNT)
+                .build();
+
+        PutMetricDataRequest request = PutMetricDataRequest.builder()
+                .namespace(isLocal ? LOCAL_METRIC_NAMESPACE : METRIC_NAMESPACE)
+                .metricData(metric)
+                .build();
+
+        cloudWatchClient.putMetricData(request);
+        log.info("Submit {} metric for {}", metric, coinName);
     }
 }

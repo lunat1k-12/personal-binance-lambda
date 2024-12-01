@@ -4,18 +4,26 @@ import com.ech.template.model.CoinPrice;
 import com.ech.template.model.dynamodb.CoinOperationRecord;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
 
 import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@ExtendWith(MockitoExtension.class)
 public class PriceDiffServiceTest {
 
     private PriceDiffService priceDiffService;
 
+    @Mock
+    private CloudWatchClient cloudWatchClient;
+
     @BeforeEach
     public void setUp() {
-        this.priceDiffService = new PriceDiffService();
+        this.priceDiffService = new PriceDiffService(cloudWatchClient, true);
     }
 
     @Test

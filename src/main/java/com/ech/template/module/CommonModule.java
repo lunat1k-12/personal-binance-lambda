@@ -18,6 +18,7 @@ import lombok.extern.log4j.Log4j2;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
@@ -40,6 +41,12 @@ import java.util.Map;
 public class CommonModule extends AbstractModule {
 
     private final boolean isLocalLambda = System.getenv("BINANCE_LOCAL_DYNAMO").equals(Boolean.TRUE.toString());
+
+    @Provides
+    @Singleton
+    public CloudWatchClient buildCloudWatchClient() {
+        return CloudWatchClient.builder().build();
+    }
 
     @Provides
     @Singleton
@@ -122,8 +129,8 @@ public class CommonModule extends AbstractModule {
 
     @Provides
     @Singleton
-    public PriceDiffService buildPriceDiffService() {
-        return new PriceDiffService();
+    public PriceDiffService buildPriceDiffService(CloudWatchClient cloudWatchClient) {
+        return new PriceDiffService(cloudWatchClient, isLocalLambda);
     }
 
     @Provides
