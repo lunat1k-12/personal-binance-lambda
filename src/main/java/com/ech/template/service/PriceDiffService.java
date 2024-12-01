@@ -20,7 +20,9 @@ public class PriceDiffService {
 
     private static final String NA = "N/A";
     private static final String POSITIVE_METRIC_NAME = "PositiveSellCount";
+    private static final String POSITIVE_METRIC_TOTAL_NAME = "PositiveTotalSellCount";
     private static final String NEGATIVE_METRIC_NAME = "NegativeSellCount";
+    private static final String NEGATIVE_METRIC_TOTAL_NAME = "NegativeTotalSellCount";
     private static final String METRIC_NAMESPACE = "Crypto";
     private static final String LOCAL_METRIC_NAMESPACE = "CryptoTest";
 
@@ -44,9 +46,11 @@ public class PriceDiffService {
         if (result.compareTo(BigDecimal.ZERO) < 0) {
             log.info("Coin price dropped by {} %", result.toPlainString());
             this.submitMetric(currentPrice.getCoinName(), result.doubleValue(), NEGATIVE_METRIC_NAME);
+            this.submitMetric(result.abs().doubleValue(), NEGATIVE_METRIC_TOTAL_NAME);
         } else {
             log.info("Coin price increased by {} %", result.toPlainString());
             this.submitMetric(currentPrice.getCoinName(), result.doubleValue(), POSITIVE_METRIC_NAME);
+            this.submitMetric(result.doubleValue(), POSITIVE_METRIC_TOTAL_NAME);
         }
         return String.format(Locale.CANADA, "%.2f%%", result.doubleValue());
     }
@@ -69,5 +73,21 @@ public class PriceDiffService {
 
         cloudWatchClient.putMetricData(request);
         log.info("Submit {} metric for {}", metric, coinName);
+    }
+
+    private void submitMetric(Double value, String metricName) {
+        MetricDatum metric = MetricDatum.builder()
+                .metricName(metricName)
+                .value(value)
+                .unit(StandardUnit.COUNT)
+                .build();
+
+        PutMetricDataRequest request = PutMetricDataRequest.builder()
+                .namespace(isLocal ? LOCAL_METRIC_NAMESPACE : METRIC_NAMESPACE)
+                .metricData(metric)
+                .build();
+
+        cloudWatchClient.putMetricData(request);
+        log.info("Submit {} metric", metric);
     }
 }
