@@ -31,6 +31,8 @@ public class CoinOperationRecord {
 
     private String ipAddress;
 
+    private String priceChangePercent;
+
     @DynamoDbPartitionKey
     public Long getId() {
         return id;
@@ -64,5 +66,10 @@ public class CoinOperationRecord {
     @DynamoDbAttribute("IPAddress")
     public String getIpAddress() {
         return ipAddress;
+    }
+
+    @DynamoDbAttribute("PriceChangePercent")
+    public String getPriceChangePercent() {
+        return priceChangePercent;
     }
 }
