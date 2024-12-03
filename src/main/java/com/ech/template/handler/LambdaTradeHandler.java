@@ -12,6 +12,7 @@ import com.ech.template.service.IpCheckClient;
 import com.ech.template.service.PriceDiffService;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import software.amazon.awssdk.utils.CollectionUtils;
 
@@ -23,6 +24,7 @@ import java.util.List;
 import static com.ech.template.service.BinanceClient.USDT_COIN_NAME;
 
 @Log4j2
+@AllArgsConstructor
 public class LambdaTradeHandler implements RequestHandler<LambdaTradeHandler.LambdaInput, Void> {
 
     public static class LambdaInput {}

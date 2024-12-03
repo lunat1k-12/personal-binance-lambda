@@ -8,10 +8,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
+import software.amazon.awssdk.services.cloudwatch.model.PutMetricDataRequest;
 
 import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 public class PriceDiffServiceTest {
@@ -43,6 +47,7 @@ public class PriceDiffServiceTest {
 
         // verify
         assertEquals("-10.00%", res);
+        verify(cloudWatchClient, times(2)).putMetricData(any(PutMetricDataRequest.class));
     }
 
     @Test
@@ -62,6 +67,7 @@ public class PriceDiffServiceTest {
 
         // verify
         assertEquals("10.00%", res);
+        verify(cloudWatchClient, times(2)).putMetricData(any(PutMetricDataRequest.class));
     }
 
     @Test
@@ -81,5 +87,6 @@ public class PriceDiffServiceTest {
 
         // verify
         assertEquals("-0.10%", res);
+        verify(cloudWatchClient, times(2)).putMetricData(any(PutMetricDataRequest.class));
     }
 }

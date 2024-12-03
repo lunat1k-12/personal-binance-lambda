@@ -1,0 +1,130 @@
+{
+  "code": 200,
+  "msg": "",
+  "snapshotVos": [{
+    "type": "spot",
+    "updateTime": 1732665599000,
+    "data": {
+      "totalAssetOfBtc": "0.00188851",
+      "balances": [{
+        "asset": "ETH",
+        "free": "0.02015485",
+        "locked": "0"
+      }, {
+        "asset": "ETHW",
+        "free": "0.02015485",
+        "locked": "0"
+      }, {
+        "asset": "XRP",
+        "free": "76.19778714",
+        "locked": "0"
+      }]
+    }
+  }, {
+    "type": "spot",
+    "updateTime": 1732751999000,
+    "data": {
+      "totalAssetOfBtc": "0.00193717",
+      "balances": [{
+        "asset": "ETH",
+        "free": "0.02015485",
+        "locked": "0"
+      }, {
+        "asset": "ETHW",
+        "free": "0.02015485",
+        "locked": "0"
+      }, {
+        "asset": "XRP",
+        "free": "76.19778714",
+        "locked": "0"
+      }]
+    }
+  }, {
+    "type": "spot",
+    "updateTime": 1732838399000,
+    "data": {
+      "totalAssetOfBtc": "0.00198264",
+      "balances": [{
+        "asset": "ETH",
+        "free": "0.02015485",
+        "locked": "0"
+      }, {
+        "asset": "ETHW",
+        "free": "0.02015485",
+        "locked": "0"
+      }, {
+        "asset": "XRP",
+        "free": "76.19778714",
+        "locked": "0"
+      }]
+    }
+  }, {
+    "type": "spot",
+    "updateTime": 1732924799000,
+    "data": {
+      "totalAssetOfBtc": "0.00215191",
+      "balances": [{
+        "asset": "ETH",
+        "free": "0.02015485",
+        "locked": "0"
+      }, {
+        "asset": "ETHW",
+        "free": "0.02015485",
+        "locked": "0"
+      }, {
+        "asset": "XRP",
+        "free": "76.19778714",
+        "locked": "0"
+      }]
+    }
+  }, {
+    "type": "spot",
+    "updateTime": 1733011199000,
+    "data": {
+      "totalAssetOfBtc": "0.00231729",
+      "balances": [{
+        "asset": "ETH",
+        "free": "0.02015485",
+        "locked": "0"
+      }, {
+        "asset": "ETHW",
+        "free": "0.02015485",
+        "locked": "0"
+      }, {
+        "asset": "XRP",
+        "free": "76.19778714",
+        "locked": "0"
+      }]
+    }
+  }, {
+    "type": "spot",
+    "updateTime": 1733097599000,
+    "data": {
+      "totalAssetOfBtc": "0.00257114",
+      "balances": [{
+        "asset": "ETH",
+        "free": "0.02015485",
+        "locked": "0"
+      }, {
+        "asset": "ETHW",
+        "free": "0.02015485",
+        "locked": "0"
+      }, {
+        "asset": "XRP",
+        "free": "76.19778714",
+        "locked": "0"
+      }]
+    }
+  }, {
+    "type": "spot",
+    "updateTime": 1733183999000,
+    "data": {
+      "totalAssetOfBtc": "0.00076609",
+      "balances": [{
+        "asset": "ETH",
+        "free": "0.02015485",
+        "locked": "0"
+      }]
+    }
+  }]
+}
