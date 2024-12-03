@@ -73,7 +73,7 @@ public class LambdaTradeHandler implements RequestHandler<LambdaTradeHandler.Lam
 
         List<CoinPrice> growingCoins = client.getFullCoinPrices(coinMinPrice.getCoinName())
                 .stream()
-                .filter(coin -> coin.getPriceChangePercent().compareTo(BigDecimal.ZERO) > 0)
+                .filter(this::filterCoinPrice)
                 .sorted(Comparator.comparing(CoinPrice::getPriceChangePercent, Comparator.reverseOrder()))
                 .toList();
 
@@ -115,5 +115,12 @@ public class LambdaTradeHandler implements RequestHandler<LambdaTradeHandler.Lam
                 .ipAddress(ipCheckClient.getMyIp())
                 .priceChangePercent(convertCoin.getPriceChangePercent().toPlainString())
                 .build());
+    }
+
+    private boolean filterCoinPrice(CoinPrice coinPrice) {
+        // check high and low barriers
+        BigDecimal priceChange = coinPrice.getPriceChangePercent();
+        return priceChange.compareTo(BigDecimal.valueOf(0.6)) > 0 &&
+                priceChange.compareTo(BigDecimal.valueOf(1.1)) < 0;
     }
 }
