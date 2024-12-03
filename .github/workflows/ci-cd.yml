@@ -36,7 +36,6 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: us-east-1  # Replace with your AWS region
         run: |
-          S3_LOCATION=$(cat s3_location.txt)
           aws lambda update-function-code \
             --function-name LambdaStack-CryptoLambda774C47DC-m387DdUOPLzu \
             --s3-bucket s3stack-lambdajarbucketf659f486-rl5t5qovf5mx \
