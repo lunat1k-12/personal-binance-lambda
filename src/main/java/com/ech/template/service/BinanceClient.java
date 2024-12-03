@@ -26,9 +26,11 @@ public class BinanceClient {
 
     public static final String USDT_COIN_NAME = "USDT";
     private static final Set<String> SKIP_COINS = Set.of("ETHW", "ETH");
-    private static final Set<String> FULL_COINS_LIST = Set.of("SOL", "BNB", "AMP", "ADA", "DOGE", "FET", "LTC",
-            "NEAR", "NEIRO", "SHIB", "TAO", "WLD",
-            "CETUS", "COW", "1000SATS", "ACT", "FLOKI", "PEPE", "STRK", "THE", "WIN", "XLM");
+    private static final Set<String> FULL_COINS_LIST = Set.of("SOL", "BNB", "AMP", "ADA", "DOGE",
+            "NEAR", "NEIRO", "SHIB", "TAO", "WLD", "PNUT", "HBAR", "DOT", "LINK", "SAND", "VET",
+            "CETUS", "COW", "1000SATS", "ACT", "FLOKI", "PEPE", "STRK", "THE", "WIN", "XLM", "SCR",
+            "AUDIO", "FARM", "WING", "AR", "FLM", "DIA", "ARDR", "JUP", "BEL", "WOO", "UMA", "SCRT",
+            "TUSD", "UNI", "WRX", "SKL", "FET", "LTC");
 
     public List<String> getCurrentBalanceCoins() {
         Map<String, Object> parameters = new LinkedHashMap<>();
