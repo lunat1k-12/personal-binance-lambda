@@ -78,7 +78,7 @@ public class LambdaTradeHandler implements RequestHandler<LambdaTradeHandler.Lam
                 .toList();
 
         Long lastOperationId = dynamoDbService.getCoin(coinMinPrice.getCoinName()).getLastOperation();
-        dynamoDbService.deleteCoinFromWallet(coinMinPrice.getCoinName());
+
         Long operationId = Instant.now().toEpochMilli();
         if (CollectionUtils.isNullOrEmpty(growingCoins)) {
             if (USDT_COIN_NAME.equals(coinMinPrice.getCoinName())) {
@@ -86,6 +86,7 @@ public class LambdaTradeHandler implements RequestHandler<LambdaTradeHandler.Lam
                 return;
             }
             log.info("No growing coins, converting to USDT");
+            dynamoDbService.deleteCoinFromWallet(coinMinPrice.getCoinName());
             dynamoDbService.saveCoin(USDT_COIN_NAME, operationId);
             dynamoDbService.saveOperation(CoinOperationRecord.builder()
                             .id(operationId)
@@ -103,6 +104,7 @@ public class LambdaTradeHandler implements RequestHandler<LambdaTradeHandler.Lam
 
         CoinPrice convertCoin = growingCoins.getFirst();
         log.info("Convert {} to {}", coinMinPrice.getCoinName(), convertCoin.getCoinName());
+        dynamoDbService.deleteCoinFromWallet(coinMinPrice.getCoinName());
         dynamoDbService.saveCoin(convertCoin.getCoinName(), operationId);
         dynamoDbService.saveOperation(CoinOperationRecord.builder()
                 .id(operationId)
