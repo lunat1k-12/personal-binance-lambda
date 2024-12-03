@@ -64,6 +64,8 @@ public class LambdaTradeHandler implements RequestHandler<LambdaTradeHandler.Lam
     }
 
     private void processCoin(CoinPrice coinMinPrice) {
+        log.info("Current coin price: {}", coinMinPrice);
+
         // negative price change in 2 minutes
         if (!USDT_COIN_NAME.equals(coinMinPrice.getCoinName()) &&
                 coinMinPrice.getPriceChangePercent().compareTo(BigDecimal.ZERO) > 0) {
