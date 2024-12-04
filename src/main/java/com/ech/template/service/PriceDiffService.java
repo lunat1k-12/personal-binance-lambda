@@ -29,6 +29,13 @@ public class PriceDiffService {
     private final CloudWatchClient cloudWatchClient;
     private final Boolean isLocal;
 
+    public double priceDiff(BigDecimal highPrice, BigDecimal currentPrice) {
+        return currentPrice.subtract(highPrice)
+                .divide(highPrice, 8, RoundingMode.HALF_UP)
+                .multiply(BigDecimal.valueOf(100))
+                .doubleValue();
+    }
+
     public String getPriceDiff(CoinPrice currentPrice, CoinOperationRecord oldPriceOperation) {
 
         if (oldPriceOperation == null) {

@@ -126,6 +126,8 @@ public class LambdaTradeHandler implements RequestHandler<LambdaTradeHandler.Lam
     private boolean filterCoinPrice(CoinPrice coinPrice) {
         // check high and low barriers
         BigDecimal priceChange = coinPrice.getPriceChangePercent();
-        return priceChange.compareTo(BigDecimal.valueOf(0.6)) > 0;
+        double highPriceDiff = priceDiffService.priceDiff(coinPrice.getHighPrice(), coinPrice.getLastPrice());
+        log.info("Coin: {}, high price diff: {}", coinPrice.getCoinName(), highPriceDiff);
+        return priceChange.compareTo(BigDecimal.valueOf(0.6)) > 0 && highPriceDiff < -25;
     }
 }
