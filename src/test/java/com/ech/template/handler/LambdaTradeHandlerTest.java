@@ -86,7 +86,7 @@ public class LambdaTradeHandlerTest {
                         .buyCoinPrice("1")
                 .build());
         when(priceDiffService.getPriceDiff(any(), any())).thenReturn("1%");
-        when(priceDiffService.priceDiff(eq(growPrice.getHighPrice()), eq(growPrice.getLastPrice()))).thenReturn(-1.049657);
+        when(priceDiffService.priceDiff(eq(growPrice.getHighPrice()), eq(growPrice.getLastPrice()))).thenReturn(-0.049657);
 
         // do
         lambdaTradeHandler.handleRequest(new LambdaTradeHandler.LambdaInput(), null);
