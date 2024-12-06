@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 @Getter
 public class CoinPrice {
@@ -37,5 +38,20 @@ public class CoinPrice {
             return symbol;
         }
         return symbol.substring(0, symbol.length() - 4);
+    }
+
+    public double getPriceDiff() {
+        BigDecimal substractedHighPrice = highPrice.subtract(lowPrice);
+
+        if (substractedHighPrice.equals(BigDecimal.ZERO)) {
+            return 0d;
+        }
+
+        return lastPrice
+                .subtract(lowPrice)
+                .subtract(substractedHighPrice)
+                .divide(substractedHighPrice, 8, RoundingMode.HALF_UP)
+                .multiply(BigDecimal.valueOf(100))
+                .doubleValue();
     }
 }

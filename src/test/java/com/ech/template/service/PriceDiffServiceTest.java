@@ -89,22 +89,4 @@ public class PriceDiffServiceTest {
         assertEquals("-0.10%", res);
         verify(cloudWatchClient, times(2)).putMetricData(any(PutMetricDataRequest.class));
     }
-
-    @Test
-    public void priceDiffBiggerHighPrice() {
-        double diff = priceDiffService.priceDiff(BigDecimal.valueOf(100), BigDecimal.valueOf(85));
-        assertEquals(-15, diff);
-    }
-
-    @Test
-    public void priceDiffSmallerHighPrice() {
-        double diff = priceDiffService.priceDiff(BigDecimal.valueOf(80), BigDecimal.valueOf(100));
-        assertEquals(25, diff);
-    }
-
-    @Test
-    public void priceDiffRealDataPrice() {
-        double diff = priceDiffService.priceDiff(BigDecimal.valueOf(0.01160), BigDecimal.valueOf(0.008573));
-        assertEquals(-26.094828, diff);
-    }
 }

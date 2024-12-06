@@ -79,14 +79,13 @@ public class LambdaTradeHandlerTest {
                 BigDecimal.ONE, BigDecimal.valueOf(-2), BigDecimal.ONE, BigDecimal.ONE, BigDecimal.ONE);
         when(client.getMinutesPrices(eq(walletCoins))).thenReturn(List.of(coinPrice));
         CoinPrice growPrice = new CoinPrice("NEW_COINUSDT",
-                BigDecimal.ONE, BigDecimal.valueOf(0.75), BigDecimal.valueOf(10), BigDecimal.ONE, BigDecimal.ONE);
+                BigDecimal.ONE, BigDecimal.valueOf(0.75), BigDecimal.valueOf(10), BigDecimal.ONE, BigDecimal.valueOf(9));
         when(client.getFullCoinPrices(eq("COIN"))).thenReturn(List.of(growPrice));
         when(dynamoDbService.getCoin(eq("COIN"))).thenReturn(wallet.getFirst());
         when(dynamoDbService.getOperationById(eq(12L))).thenReturn(CoinOperationRecord.builder()
                         .buyCoinPrice("1")
                 .build());
         when(priceDiffService.getPriceDiff(any(), any())).thenReturn("1%");
-        when(priceDiffService.priceDiff(eq(growPrice.getHighPrice()), eq(growPrice.getLastPrice()))).thenReturn(-0.049657);
 
         // do
         lambdaTradeHandler.handleRequest(new LambdaTradeHandler.LambdaInput(), null);

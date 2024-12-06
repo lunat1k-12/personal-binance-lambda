@@ -33,6 +33,8 @@ public class CoinOperationRecord {
 
     private String priceChangePercent;
 
+    private Double highPriceDiff;
+
     @DynamoDbPartitionKey
     public Long getId() {
         return id;
@@ -71,5 +73,10 @@ public class CoinOperationRecord {
     @DynamoDbAttribute("PriceChangePercent")
     public String getPriceChangePercent() {
         return priceChangePercent;
+    }
+
+    @DynamoDbAttribute("HighPriceDiff")
+    public Double getHighPriceDiff() {
+        return highPriceDiff;
     }
 }

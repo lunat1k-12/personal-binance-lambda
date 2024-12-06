@@ -120,14 +120,15 @@ public class LambdaTradeHandler implements RequestHandler<LambdaTradeHandler.Lam
                         dynamoDbService.getOperationById(lastOperationId)))
                 .ipAddress(ipCheckClient.getMyIp())
                 .priceChangePercent(convertCoin.getPriceChangePercent().toPlainString())
+                        .highPriceDiff(convertCoin.getPriceDiff())
                 .build());
     }
 
     private boolean filterCoinPrice(CoinPrice coinPrice) {
         // check high and low barriers
         BigDecimal priceChange = coinPrice.getPriceChangePercent();
-        double highPriceDiff = priceDiffService.priceDiff(coinPrice.getHighPrice(), coinPrice.getLastPrice());
+        double highPriceDiff = coinPrice.getPriceDiff();
         log.info("Coin: {}, high price diff: {}", coinPrice.getCoinName(), highPriceDiff);
-        return priceChange.compareTo(BigDecimal.valueOf(0.6)) > 0 && highPriceDiff > -1;
+        return priceChange.compareTo(BigDecimal.valueOf(0.6)) > 0 && highPriceDiff > -12;
     }
 }
