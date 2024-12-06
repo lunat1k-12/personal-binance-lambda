@@ -77,7 +77,7 @@ public class BinanceClientTest {
         ArgumentCaptor<Map<String, Object>> captor = ArgumentCaptor.forClass(Map.class);
         verify(market).ticker(captor.capture());
         Map<String, Object> map = captor.getValue();
-        assertEquals("2m", map.get("windowSize"));
+        assertEquals("15m", map.get("windowSize"));
         assertEquals(List.of("COINUSDT"), map.get("symbols"));
     }
 
@@ -96,7 +96,7 @@ public class BinanceClientTest {
         ArgumentCaptor<Map<String, Object>> captor = ArgumentCaptor.forClass(Map.class);
         verify(market).ticker(captor.capture());
         Map<String, Object> map = captor.getValue();
-        assertEquals("2m", map.get("windowSize"));
+        assertEquals("15m", map.get("windowSize"));
 
         List<String> coins = (List<String>) map.get("symbols");
         assertFalse(coins.contains("WLD"));

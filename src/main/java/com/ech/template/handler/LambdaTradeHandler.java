@@ -129,6 +129,6 @@ public class LambdaTradeHandler implements RequestHandler<LambdaTradeHandler.Lam
         BigDecimal priceChange = coinPrice.getPriceChangePercent();
         double highPriceDiff = coinPrice.getPriceDiff();
         log.info("Coin: {}, high price diff: {}", coinPrice.getCoinName(), highPriceDiff);
-        return priceChange.compareTo(BigDecimal.valueOf(0.6)) > 0 && highPriceDiff > -12;
+        return priceChange.compareTo(BigDecimal.valueOf(0.2)) > 0 && highPriceDiff > -12;
     }
 }

@@ -88,7 +88,7 @@ public class BinanceClient {
     private List<CoinPrice> loadCoinPrices(List<String> symbols) {
         Map<String, Object> parameters = new LinkedHashMap<>();
         parameters.put("symbols", symbols);
-        parameters.put("windowSize", "2m");
+        parameters.put("windowSize", "15m");
         String result = client.createMarket().ticker(parameters);
         log.info("Coin prices: {}", result);
 
