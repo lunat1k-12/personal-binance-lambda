@@ -3,11 +3,13 @@ package com.ech.template.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
+import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 @Getter
+@ToString
 public class CoinPrice {
 
     @JsonCreator
