@@ -63,7 +63,7 @@ public class BinanceClient {
         return coinNames;
     }
 
-    public List<CoinPrice> getMinutesPrices(List<String> coinNames) {
+    public List<CoinPrice> getMinutesPrices(List<String> coinNames, String windowSize) {
         List<String> list = new ArrayList<>();
         coinNames.stream()
                 .filter(coin -> !USDT_COIN_NAME.equals(coin))
@@ -72,7 +72,7 @@ public class BinanceClient {
         List<CoinPrice> prices = new ArrayList<>();
 
         if (!CollectionUtils.isNullOrEmpty(list)) {
-            prices.addAll(loadCoinPrices(list));
+            prices.addAll(loadCoinPrices(list, windowSize));
         }
 
         if (coinNames.contains(USDT_COIN_NAME)) {
@@ -84,10 +84,10 @@ public class BinanceClient {
         return prices;
     }
 
-    private List<CoinPrice> loadCoinPrices(List<String> symbols) {
+    private List<CoinPrice> loadCoinPrices(List<String> symbols, String windowSize) {
         Map<String, Object> parameters = new LinkedHashMap<>();
         parameters.put("symbols", symbols);
-        parameters.put("windowSize", "15m");
+        parameters.put("windowSize", windowSize);
         String result = client.createMarket().ticker(parameters);
         log.info("Coin prices: {}", result);
 
@@ -98,11 +98,11 @@ public class BinanceClient {
         }
     }
 
-    public List<CoinPrice> getFullCoinPrices(String coinNameToSkip) {
+    public List<CoinPrice> getFullCoinPrices(String coinNameToSkip, String windowSize) {
         return getMinutesPrices(FULL_COINS_LIST.stream()
                 // Substring USDT at the end
                 .filter(coinName -> !coinName.equals(coinNameToSkip))
-                .toList());
+                .toList(), windowSize);
     }
 
 }

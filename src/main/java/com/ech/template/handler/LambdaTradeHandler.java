@@ -64,7 +64,7 @@ public class LambdaTradeHandler implements RequestHandler<LambdaTradeHandler.Lam
 
         log.info("Balance coins: {}", balanceCoins);
 
-        client.getMinutesPrices(balanceCoins)
+        client.getMinutesPrices(balanceCoins, "2m")
                 .forEach(this::processCoin);
         return null;
     }
@@ -79,7 +79,7 @@ public class LambdaTradeHandler implements RequestHandler<LambdaTradeHandler.Lam
             return;
         }
 
-        List<CoinPrice> growingCoins = client.getFullCoinPrices(coinMinPrice.getCoinName())
+        List<CoinPrice> growingCoins = client.getFullCoinPrices(coinMinPrice.getCoinName(), "15m")
                 .stream()
                 .filter(this::filterCoinPrice)
                 .sorted(Comparator.comparing(CoinPrice::getPriceChangePercent, Comparator.reverseOrder()))

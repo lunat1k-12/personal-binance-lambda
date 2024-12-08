@@ -54,7 +54,7 @@ public class LambdaTradeHandlerTest {
         List<String> walletCoins = List.of("COIN");
         CoinPrice coinPrice = new CoinPrice("COINUSDT",
                 BigDecimal.ONE, BigDecimal.valueOf(5), BigDecimal.ONE, BigDecimal.ONE, BigDecimal.ONE);
-        when(client.getMinutesPrices(eq(walletCoins))).thenReturn(List.of(coinPrice));
+        when(client.getMinutesPrices(eq(walletCoins), eq("2m"))).thenReturn(List.of(coinPrice));
 
         // do
         lambdaTradeHandler.handleRequest(new LambdaTradeHandler.LambdaInput(), null);
@@ -77,10 +77,10 @@ public class LambdaTradeHandlerTest {
         List<String> walletCoins = List.of("COIN");
         CoinPrice coinPrice = new CoinPrice("COINUSDT",
                 BigDecimal.ONE, BigDecimal.valueOf(-2), BigDecimal.ONE, BigDecimal.ONE, BigDecimal.ONE);
-        when(client.getMinutesPrices(eq(walletCoins))).thenReturn(List.of(coinPrice));
+        when(client.getMinutesPrices(eq(walletCoins), eq("2m"))).thenReturn(List.of(coinPrice));
         CoinPrice growPrice = new CoinPrice("NEW_COINUSDT",
                 BigDecimal.ONE, BigDecimal.valueOf(0.75), BigDecimal.valueOf(10), BigDecimal.ONE, BigDecimal.valueOf(9));
-        when(client.getFullCoinPrices(eq("COIN"))).thenReturn(List.of(growPrice));
+        when(client.getFullCoinPrices(eq("COIN"), eq("15m"))).thenReturn(List.of(growPrice));
         when(dynamoDbService.getCoin(eq("COIN"))).thenReturn(wallet.getFirst());
         when(dynamoDbService.getOperationById(eq(12L))).thenReturn(CoinOperationRecord.builder()
                         .buyCoinPrice("1")
@@ -92,8 +92,8 @@ public class LambdaTradeHandlerTest {
 
         // verify
         verify(dynamoDbService).loadDynamoWallet();
-        verify(client).getMinutesPrices(eq(walletCoins));
-        verify(client).getFullCoinPrices(eq("COIN"));
+        verify(client).getMinutesPrices(eq(walletCoins), eq("2m"));
+        verify(client).getFullCoinPrices(eq("COIN"), eq("15m"));
         verify(dynamoDbService).getCoin(eq("COIN"));
         verify(dynamoDbService).getOperationById(eq(12L));
         verify(priceDiffService).getPriceDiff(any(), any());
