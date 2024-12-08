@@ -3,14 +3,12 @@ package com.ech.template.handler;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.ech.template.model.BalanceResponse;
-import com.ech.template.model.dynamodb.CoinOperationRecord;
-import com.ech.template.model.dynamodb.WalletCoin;
-import com.ech.template.service.BinanceClient;
 import com.ech.template.model.CoinPrice;
+import com.ech.template.model.dynamodb.WalletCoin;
 import com.ech.template.module.CommonModule;
+import com.ech.template.service.BinanceClient;
 import com.ech.template.service.DynamoDbService;
-import com.ech.template.service.IpCheckClient;
-import com.ech.template.service.PriceDiffService;
+import com.ech.template.service.OperationService;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import lombok.AllArgsConstructor;
@@ -18,7 +16,6 @@ import lombok.extern.log4j.Log4j2;
 import software.amazon.awssdk.utils.CollectionUtils;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
 
@@ -32,15 +29,13 @@ public class LambdaTradeHandler implements RequestHandler<LambdaTradeHandler.Lam
 
     private final BinanceClient client;
     private final DynamoDbService dynamoDbService;
-    private final PriceDiffService priceDiffService;
-    private final IpCheckClient ipCheckClient;
+    private final OperationService operationService;
 
     public LambdaTradeHandler() {
         Injector injector = Guice.createInjector(new CommonModule());
         this.client = injector.getInstance(BinanceClient.class);
         this.dynamoDbService = injector.getInstance(DynamoDbService.class);
-        this.priceDiffService = injector.getInstance(PriceDiffService.class);
-        this.ipCheckClient = injector.getInstance(IpCheckClient.class);
+        this.operationService = injector.getInstance(OperationService.class);
     }
 
     @Override
@@ -87,49 +82,19 @@ public class LambdaTradeHandler implements RequestHandler<LambdaTradeHandler.Lam
 
         WalletCoin currentWalletCoin = dynamoDbService.getCoin(coinMinPrice.getCoinName());
 
-        Long operationId = Instant.now().toEpochMilli();
         if (CollectionUtils.isNullOrEmpty(growingCoins)) {
             if (USDT_COIN_NAME.equals(coinMinPrice.getCoinName())) {
                 log.info("Keep USDT coin");
                 return;
             }
             log.info("No growing coins, converting to USDT");
-            dynamoDbService.deleteCoinFromWallet(coinMinPrice.getCoinName());
-            dynamoDbService.saveCoin(USDT_COIN_NAME,
-                    priceDiffService.getConvertedToUsdtAmount(currentWalletCoin.getAmount(), coinMinPrice),
-                    operationId);
-            dynamoDbService.saveOperation(CoinOperationRecord.builder()
-                            .id(operationId)
-                            .sellCoinName(coinMinPrice.getCoinName())
-                            .sellCoinPrice(coinMinPrice.getLastPrice().toPlainString())
-                            .buyCoinName(USDT_COIN_NAME)
-                            .buyCoinPrice("1")
-                            .diffPercent(priceDiffService.getPriceDiff(coinMinPrice,
-                                    dynamoDbService.getOperationById(currentWalletCoin.getLastOperation())))
-                            .ipAddress(ipCheckClient.getMyIp())
-                            .priceChangePercent(BigDecimal.ZERO.toPlainString())
-                    .build());
+            operationService.saveUsdtOperation(coinMinPrice, currentWalletCoin);
             return;
         }
 
         CoinPrice convertCoin = growingCoins.getFirst();
         log.info("Convert {} to {}", coinMinPrice.getCoinName(), convertCoin.getCoinName());
-        dynamoDbService.deleteCoinFromWallet(coinMinPrice.getCoinName());
-        dynamoDbService.saveCoin(convertCoin.getCoinName(),
-                priceDiffService.getConvertedAmount(currentWalletCoin.getAmount(), coinMinPrice, convertCoin),
-                operationId);
-        dynamoDbService.saveOperation(CoinOperationRecord.builder()
-                .id(operationId)
-                .sellCoinName(coinMinPrice.getCoinName())
-                .sellCoinPrice(coinMinPrice.getLastPrice().toPlainString())
-                .buyCoinName(convertCoin.getCoinName())
-                .buyCoinPrice(convertCoin.getLastPrice().toPlainString())
-                .diffPercent(priceDiffService.getPriceDiff(coinMinPrice,
-                        dynamoDbService.getOperationById(currentWalletCoin.getLastOperation())))
-                .ipAddress(ipCheckClient.getMyIp())
-                .priceChangePercent(convertCoin.getPriceChangePercent().toPlainString())
-                        .highPriceDiff(convertCoin.getPriceDiff())
-                .build());
+        operationService.saveOperation(coinMinPrice, convertCoin, currentWalletCoin);
     }
 
     private boolean filterCoinPrice(CoinPrice coinPrice) {

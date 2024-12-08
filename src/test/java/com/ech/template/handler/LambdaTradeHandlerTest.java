@@ -6,6 +6,7 @@ import com.ech.template.model.dynamodb.WalletCoin;
 import com.ech.template.service.BinanceClient;
 import com.ech.template.service.DynamoDbService;
 import com.ech.template.service.IpCheckClient;
+import com.ech.template.service.OperationService;
 import com.ech.template.service.PriceDiffService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,7 +41,7 @@ public class LambdaTradeHandlerTest {
 
     @BeforeEach
     public void setUp() {
-        this.lambdaTradeHandler = new LambdaTradeHandler(client, dynamoDbService, priceDiffService, ipCheckClient);
+        this.lambdaTradeHandler = new LambdaTradeHandler(client, dynamoDbService, new OperationService(dynamoDbService, priceDiffService, ipCheckClient));
     }
 
     @Test
