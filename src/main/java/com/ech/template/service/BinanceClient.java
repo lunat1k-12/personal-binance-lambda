@@ -32,7 +32,7 @@ public class BinanceClient {
             "AUDIO", "FARM", "WING", "AR", "FLM", "DIA", "ARDR", "JUP", "BEL", "WOO", "UMA", "SCRT",
             "TUSD", "UNI", "WRX", "SKL", "FET", "LTC");
 
-    public List<String> getCurrentBalanceCoins() {
+    public List<BalanceResponse.SnapshotVos.Data.Balance> getCurrentBalanceCoins() {
         Map<String, Object> parameters = new LinkedHashMap<>();
         parameters.put("type", "SPOT");
 
@@ -46,13 +46,12 @@ public class BinanceClient {
         }
     }
 
-    private List<String> getLastCoinNames(BalanceResponse balanceResponse) {
-        List<String> coinNames = new ArrayList<>();
+    private List<BalanceResponse.SnapshotVos.Data.Balance> getLastCoinNames(BalanceResponse balanceResponse) {
+        List<BalanceResponse.SnapshotVos.Data.Balance> coinNames = new ArrayList<>();
         for (int i = balanceResponse.getSnapshotVos().size() - 1; i >= 0; i--) {
             BalanceResponse.SnapshotVos.Data data = balanceResponse.getSnapshotVos().get(i).getData();
-            List<String> dataCoinNames = data.getBalances().stream()
-                    .map(BalanceResponse.SnapshotVos.Data.Balance::getAsset)
-                    .filter(asset -> !SKIP_COINS.contains(asset))
+            List<BalanceResponse.SnapshotVos.Data.Balance> dataCoinNames = data.getBalances().stream()
+                    .filter(asset -> !SKIP_COINS.contains(asset.getAsset()))
                     .toList();
 
             if (!dataCoinNames.isEmpty()) {

@@ -3,6 +3,7 @@ package com.ech.template.service;
 import com.binance.connector.client.SpotClient;
 import com.binance.connector.client.impl.spot.Market;
 import com.binance.connector.client.impl.spot.Wallet;
+import com.ech.template.model.BalanceResponse;
 import com.ech.template.model.CoinPrice;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -55,7 +56,10 @@ public class BinanceClientTest {
         when(wallet.accountSnapshot(any())).thenReturn(balanceResponse);
 
         // do
-        List<String> result = binanceClient.getCurrentBalanceCoins();
+        List<String> result = binanceClient.getCurrentBalanceCoins()
+                .stream()
+                .map(BalanceResponse.SnapshotVos.Data.Balance::getAsset)
+                .toList();
 
         // verify
         assertEquals(List.of("XRP"), result);

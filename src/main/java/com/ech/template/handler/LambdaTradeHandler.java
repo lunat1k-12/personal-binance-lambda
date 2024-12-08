@@ -2,6 +2,7 @@ package com.ech.template.handler;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
+import com.ech.template.model.BalanceResponse;
 import com.ech.template.model.dynamodb.CoinOperationRecord;
 import com.ech.template.model.dynamodb.WalletCoin;
 import com.ech.template.service.BinanceClient;
@@ -49,8 +50,11 @@ public class LambdaTradeHandler implements RequestHandler<LambdaTradeHandler.Lam
         List<String> balanceCoins;
         if (CollectionUtils.isNullOrEmpty(coinsFromDynamo)) {
             log.info("Load coins from API");
-            balanceCoins = client.getCurrentBalanceCoins();
-            balanceCoins.forEach(dynamoDbService::saveCoin);
+            List<BalanceResponse.SnapshotVos.Data.Balance> walletCoins = client.getCurrentBalanceCoins();
+            walletCoins.forEach(coin -> dynamoDbService.saveCoin(coin.getAsset(), coin.getFree()));
+            balanceCoins = walletCoins.stream()
+                    .map(BalanceResponse.SnapshotVos.Data.Balance::getAsset)
+                    .toList();
         } else {
             log.info("Load coins from DynamoDB");
             balanceCoins = coinsFromDynamo.stream()
@@ -81,7 +85,7 @@ public class LambdaTradeHandler implements RequestHandler<LambdaTradeHandler.Lam
                 .sorted(Comparator.comparing(CoinPrice::getPriceChangePercent, Comparator.reverseOrder()))
                 .toList();
 
-        Long lastOperationId = dynamoDbService.getCoin(coinMinPrice.getCoinName()).getLastOperation();
+        WalletCoin currentWalletCoin = dynamoDbService.getCoin(coinMinPrice.getCoinName());
 
         Long operationId = Instant.now().toEpochMilli();
         if (CollectionUtils.isNullOrEmpty(growingCoins)) {
@@ -91,7 +95,9 @@ public class LambdaTradeHandler implements RequestHandler<LambdaTradeHandler.Lam
             }
             log.info("No growing coins, converting to USDT");
             dynamoDbService.deleteCoinFromWallet(coinMinPrice.getCoinName());
-            dynamoDbService.saveCoin(USDT_COIN_NAME, operationId);
+            dynamoDbService.saveCoin(USDT_COIN_NAME,
+                    priceDiffService.getConvertedToUsdtAmount(currentWalletCoin.getAmount(), coinMinPrice),
+                    operationId);
             dynamoDbService.saveOperation(CoinOperationRecord.builder()
                             .id(operationId)
                             .sellCoinName(coinMinPrice.getCoinName())
@@ -99,7 +105,7 @@ public class LambdaTradeHandler implements RequestHandler<LambdaTradeHandler.Lam
                             .buyCoinName(USDT_COIN_NAME)
                             .buyCoinPrice("1")
                             .diffPercent(priceDiffService.getPriceDiff(coinMinPrice,
-                                    dynamoDbService.getOperationById(lastOperationId)))
+                                    dynamoDbService.getOperationById(currentWalletCoin.getLastOperation())))
                             .ipAddress(ipCheckClient.getMyIp())
                             .priceChangePercent(BigDecimal.ZERO.toPlainString())
                     .build());
@@ -109,7 +115,9 @@ public class LambdaTradeHandler implements RequestHandler<LambdaTradeHandler.Lam
         CoinPrice convertCoin = growingCoins.getFirst();
         log.info("Convert {} to {}", coinMinPrice.getCoinName(), convertCoin.getCoinName());
         dynamoDbService.deleteCoinFromWallet(coinMinPrice.getCoinName());
-        dynamoDbService.saveCoin(convertCoin.getCoinName(), operationId);
+        dynamoDbService.saveCoin(convertCoin.getCoinName(),
+                priceDiffService.getConvertedAmount(currentWalletCoin.getAmount(), coinMinPrice, convertCoin),
+                operationId);
         dynamoDbService.saveOperation(CoinOperationRecord.builder()
                 .id(operationId)
                 .sellCoinName(coinMinPrice.getCoinName())
@@ -117,7 +125,7 @@ public class LambdaTradeHandler implements RequestHandler<LambdaTradeHandler.Lam
                 .buyCoinName(convertCoin.getCoinName())
                 .buyCoinPrice(convertCoin.getLastPrice().toPlainString())
                 .diffPercent(priceDiffService.getPriceDiff(coinMinPrice,
-                        dynamoDbService.getOperationById(lastOperationId)))
+                        dynamoDbService.getOperationById(currentWalletCoin.getLastOperation())))
                 .ipAddress(ipCheckClient.getMyIp())
                 .priceChangePercent(convertCoin.getPriceChangePercent().toPlainString())
                         .highPriceDiff(convertCoin.getPriceDiff())

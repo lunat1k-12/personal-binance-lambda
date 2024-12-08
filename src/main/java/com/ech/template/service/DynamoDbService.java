@@ -7,6 +7,7 @@ import lombok.extern.log4j.Log4j2;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Log4j2
@@ -16,14 +17,15 @@ public class DynamoDbService {
     private final DynamoDbTable<WalletCoin> walletCoinTable;
     private final DynamoDbTable<CoinOperationRecord> operationTable;
 
-    public void saveCoin(String coin) {
-        this.saveCoin(coin, null);
+    public void saveCoin(String coin, BigDecimal amount) {
+        this.saveCoin(coin, amount, null);
     }
 
-    public void saveCoin(String coin, Long operationId) {
+    public void saveCoin(String coin, BigDecimal amount, Long operationId) {
         walletCoinTable.putItem(WalletCoin.builder()
                 .name(coin)
                 .lastOperation(operationId)
+                .amount(amount)
                 .build());
         log.info("Coin saved to wallet: {}", coin);
     }

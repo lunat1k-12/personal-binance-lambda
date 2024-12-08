@@ -89,4 +89,43 @@ public class PriceDiffServiceTest {
         assertEquals("-0.10%", res);
         verify(cloudWatchClient, times(2)).putMetricData(any(PutMetricDataRequest.class));
     }
+
+    @Test
+    public void getConvertedAmount() {
+        // given
+        BigDecimal amount = BigDecimal.valueOf(100);
+        CoinPrice source = new CoinPrice("Coin", BigDecimal.ONE,
+                BigDecimal.ONE,
+                BigDecimal.ONE,
+                BigDecimal.ONE,
+                BigDecimal.valueOf(1));
+        CoinPrice target = new CoinPrice("Coin", BigDecimal.ONE,
+                BigDecimal.ONE,
+                BigDecimal.ONE,
+                BigDecimal.ONE,
+                BigDecimal.valueOf(2));
+
+        // do
+        BigDecimal res = priceDiffService.getConvertedAmount(amount, source, target);
+
+        // verify
+        assertEquals(50d, res.doubleValue());
+    }
+
+    @Test
+    public void getConvertedToUsdtAmount() {
+        // given
+        BigDecimal amount = BigDecimal.valueOf(100);
+        CoinPrice source = new CoinPrice("Coin", BigDecimal.ONE,
+                BigDecimal.ONE,
+                BigDecimal.ONE,
+                BigDecimal.ONE,
+                BigDecimal.valueOf(1));
+
+        // do
+        BigDecimal res = priceDiffService.getConvertedToUsdtAmount(amount, source);
+
+        // verify
+        assertEquals(100d, res.doubleValue());
+    }
 }

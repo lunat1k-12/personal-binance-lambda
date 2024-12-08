@@ -99,7 +99,7 @@ public class LambdaTradeHandlerTest {
         verify(priceDiffService).getPriceDiff(any(), any());
 
         verify(dynamoDbService).deleteCoinFromWallet(eq("COIN"));
-        verify(dynamoDbService).saveCoin(eq("NEW_COIN"), anyLong());
+        verify(dynamoDbService).saveCoin(eq("NEW_COIN"), any(), anyLong());
         verify(dynamoDbService).saveOperation(any(CoinOperationRecord.class));
     }
 }
