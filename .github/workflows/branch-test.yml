@@ -12,7 +12,11 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '21'
+
       - name: Check Java version
         run: java --version
       - name: Tests
+        env:
+          AWS_ACCESS_KEY_ID: "fake-access-key"
+          AWS_SECRET_ACCESS_KEY: "fake-secret-key"
         run: ./gradlew test --info
