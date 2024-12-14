@@ -41,8 +41,8 @@ public abstract class AbstractIT {
         dynamoDbClient = DynamoDbClient.builder()
                 .endpointOverride(URI.create(endpoint))
                 .region(Region.US_EAST_1)
-//                .credentialsProvider(StaticCredentialsProvider.create(
-//                        AwsBasicCredentials.create("fake-access-key", "fake-secret-key")))
+                .credentialsProvider(StaticCredentialsProvider.create(
+                        AwsBasicCredentials.create("fake-access-key", "fake-secret-key")))
                 .build();
 
         initTables();
