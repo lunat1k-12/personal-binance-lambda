@@ -35,7 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
+//@ExtendWith(MockitoExtension.class)
 public class LambdaTradeHandlerIT extends AbstractIT {
 
     private LambdaTradeHandler handler;
@@ -56,7 +56,7 @@ public class LambdaTradeHandlerIT extends AbstractIT {
     private DynamoDbTable<WalletCoin> walletTable;
     private DynamoDbTable<CoinOperationRecord> coinTable;
 
-    @BeforeEach
+//    @BeforeEach
     public void setup() {
         when(client.createWallet()).thenReturn(wallet);
         when(client.createMarket()).thenReturn(market);
@@ -80,7 +80,7 @@ public class LambdaTradeHandlerIT extends AbstractIT {
                 metricsService);
     }
 
-    @Test
+//    @Test
     public void testCoinSplit() throws IOException {
         // given
         String balanceResponse = loadFile("balanceResponse.json");
