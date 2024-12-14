@@ -110,6 +110,5 @@ public class BinanceClientTest {
         ClassLoader classLoader = getClass().getClassLoader();
         Path jsonFilePath = Paths.get(classLoader.getResource(fileName).getPath());
         return Files.readString(jsonFilePath);
-
     }
 }
