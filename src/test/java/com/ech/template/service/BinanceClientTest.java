@@ -93,7 +93,7 @@ public class BinanceClientTest {
         when(market.ticker(any())).thenReturn(coinPricesResponse);
 
         // do
-        List<CoinPrice> prices = binanceClient.getFullCoinPrices("WLD", "15m");
+        List<CoinPrice> prices = binanceClient.getFullCoinPrices(List.of("WLD"), "15m");
 
         // verify
         assertEquals(45, prices.size());

@@ -6,6 +6,7 @@ import com.ech.template.model.dynamodb.WalletCoin;
 import com.ech.template.service.BinanceClient;
 import com.ech.template.service.DynamoDbService;
 import com.ech.template.service.IpCheckClient;
+import com.ech.template.service.MetricsService;
 import com.ech.template.service.OperationService;
 import com.ech.template.service.PriceDiffService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -42,6 +43,12 @@ import java.util.Map;
 public class CommonModule extends AbstractModule {
 
     private final boolean isLocalLambda = System.getenv("BINANCE_LOCAL_DYNAMO").equals(Boolean.TRUE.toString());
+
+    @Provides
+    @Singleton
+    public MetricsService buildMetricsService(CloudWatchClient cloudWatchClient) {
+        return new MetricsService(cloudWatchClient, isLocalLambda);
+    }
 
     @Provides
     @Singleton
