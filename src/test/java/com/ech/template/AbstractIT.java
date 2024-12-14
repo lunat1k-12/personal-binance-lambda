@@ -31,7 +31,8 @@ public abstract class AbstractIT {
     public static void setupContainer() {
         // Start DynamoDB Local container
         dynamoDbContainer = new GenericContainer<>(DockerImageName.parse("amazon/dynamodb-local:latest"))
-                .withExposedPorts(8000); // Default port for DynamoDB Local
+                .withExposedPorts(8000) // Default port for DynamoDB Local
+                .withCommand("-jar DynamoDBLocal.jar -inMemory -sharedDb");
         dynamoDbContainer.start();
 
         // Configure DynamoDB client to connect to the container
@@ -41,8 +42,6 @@ public abstract class AbstractIT {
         dynamoDbClient = DynamoDbClient.builder()
                 .endpointOverride(URI.create(endpoint))
                 .region(Region.US_EAST_1)
-//                .credentialsProvider(StaticCredentialsProvider.create(
-//                        AwsBasicCredentials.create("fake-access-key", "fake-secret-key")))
                 .build();
 
         initTables();
