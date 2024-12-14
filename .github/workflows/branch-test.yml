@@ -1,0 +1,22 @@
+name: Test builds
+on:
+  pull_request:
+    branches: [ main ]
+jobs:
+  build-jar:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Check Java version
+        run: java --version
+      - name: Tests
+        env:
+          AWS_ACCESS_KEY_ID: "fake-access-key"
+          AWS_SECRET_ACCESS_KEY: "fake-secret-key"
+        run: ./gradlew test --info

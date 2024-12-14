@@ -76,12 +76,16 @@ public class BinanceClient {
         }
 
         if (coinNames.contains(USDT_COIN_NAME)) {
-            prices.add(new CoinPrice(USDT_COIN_NAME,
-                    BigDecimal.ONE, BigDecimal.ONE,
-                    BigDecimal.ONE, BigDecimal.ONE,
-                    BigDecimal.ONE));
+            prices.add(getUsdtCoinPrice());
         }
         return prices;
+    }
+
+    public CoinPrice getUsdtCoinPrice() {
+        return new CoinPrice(USDT_COIN_NAME,
+                BigDecimal.ONE, BigDecimal.ONE,
+                BigDecimal.ONE, BigDecimal.ONE,
+                BigDecimal.ONE);
     }
 
     private List<CoinPrice> loadCoinPrices(List<String> symbols, String windowSize) {
@@ -98,10 +102,10 @@ public class BinanceClient {
         }
     }
 
-    public List<CoinPrice> getFullCoinPrices(String coinNameToSkip, String windowSize) {
+    public List<CoinPrice> getFullCoinPrices(List<String> coinNameToSkip, String windowSize) {
         return getMinutesPrices(FULL_COINS_LIST.stream()
                 // Substring USDT at the end
-                .filter(coinName -> !coinName.equals(coinNameToSkip))
+                .filter(coinName -> !coinNameToSkip.contains(coinName))
                 .toList(), windowSize);
     }
 

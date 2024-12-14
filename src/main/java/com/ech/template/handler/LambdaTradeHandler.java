@@ -2,12 +2,14 @@ package com.ech.template.handler;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
+import com.ech.template.model.Balance;
 import com.ech.template.model.BalanceResponse;
 import com.ech.template.model.CoinPrice;
 import com.ech.template.model.dynamodb.WalletCoin;
 import com.ech.template.module.CommonModule;
 import com.ech.template.service.BinanceClient;
 import com.ech.template.service.DynamoDbService;
+import com.ech.template.service.MetricsService;
 import com.ech.template.service.OperationService;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -16,6 +18,8 @@ import lombok.extern.log4j.Log4j2;
 import software.amazon.awssdk.utils.CollectionUtils;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -30,71 +34,107 @@ public class LambdaTradeHandler implements RequestHandler<LambdaTradeHandler.Lam
     private final BinanceClient client;
     private final DynamoDbService dynamoDbService;
     private final OperationService operationService;
+    private final MetricsService metricsService;
 
     public LambdaTradeHandler() {
         Injector injector = Guice.createInjector(new CommonModule());
         this.client = injector.getInstance(BinanceClient.class);
         this.dynamoDbService = injector.getInstance(DynamoDbService.class);
         this.operationService = injector.getInstance(OperationService.class);
+        this.metricsService = injector.getInstance(MetricsService.class);
+    }
+
+    public static void main(String[] args) {
+        new LambdaTradeHandler().handleRequest(new LambdaInput(), null);
     }
 
     @Override
     public Void handleRequest(LambdaInput lambdaInput, Context context) {
 
         List<WalletCoin> coinsFromDynamo = dynamoDbService.loadDynamoWallet();
-        List<String> balanceCoins;
+        List<Balance> balanceCoins;
         if (CollectionUtils.isNullOrEmpty(coinsFromDynamo)) {
             log.info("Load coins from API");
             List<BalanceResponse.SnapshotVos.Data.Balance> walletCoins = client.getCurrentBalanceCoins();
             walletCoins.forEach(coin -> dynamoDbService.saveCoin(coin.getAsset(), coin.getFree()));
             balanceCoins = walletCoins.stream()
-                    .map(BalanceResponse.SnapshotVos.Data.Balance::getAsset)
+                    .map(b -> Balance.builder()
+                            .coinName(b.getAsset())
+                            .amount(b.getFree())
+                            .build())
                     .toList();
         } else {
             log.info("Load coins from DynamoDB");
             balanceCoins = coinsFromDynamo.stream()
-                    .map(WalletCoin::getName)
+                    .map(w -> Balance.builder()
+                            .coinName(w.getName())
+                            .amount(w.getAmount())
+                            .build())
                     .toList();
         }
 
         log.info("Balance coins: {}", balanceCoins);
 
-        client.getMinutesPrices(balanceCoins, "2m")
-                .forEach(this::processCoin);
+        List<CoinPrice> walletPrices = client.getMinutesPrices(balanceCoins.stream()
+                .map(Balance::getCoinName).toList(), "2m");
+        if (walletPrices.size() == 1 && !USDT_COIN_NAME.equals(walletPrices.getFirst().getCoinName())) {
+            Balance balance = balanceCoins.getFirst();
+            CoinPrice price = walletPrices.getFirst();
+            log.info("Split {} wallet coin, amount: {}", price.getCoinName(), balance.getAmount());
+
+            BigDecimal halfAmount = balance.getAmount().divide(BigDecimal.valueOf(2), 8, RoundingMode.HALF_DOWN);
+            dynamoDbService.saveCoin(balance.getCoinName(), halfAmount);
+            log.info("Convert {} of {} to USDT", halfAmount, price.getCoinName());
+            dynamoDbService.saveCoin(USDT_COIN_NAME, halfAmount.multiply(price.getLastPrice()));
+
+            BigDecimal firstCoin = processCoin(price);
+            BigDecimal secondCoin = processCoin(client.getUsdtCoinPrice());
+            metricsService.submitWalletMetric(firstCoin.add(secondCoin));
+        } else {
+            BigDecimal total = walletPrices.stream()
+                    .map(this::processCoin)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            metricsService.submitWalletMetric(total);
+        }
+
         return null;
     }
 
-    private void processCoin(CoinPrice coinMinPrice) {
+    private BigDecimal processCoin(CoinPrice coinMinPrice) {
         log.info("Current coin price: {}", coinMinPrice);
+        WalletCoin currentWalletCoin = dynamoDbService.getCoin(coinMinPrice.getCoinName());
 
         // negative price change in 2 minutes
         if (!USDT_COIN_NAME.equals(coinMinPrice.getCoinName()) &&
                 coinMinPrice.getPriceChangePercent().compareTo(BigDecimal.ZERO) > 0) {
             log.info("Keep the coin: {}", coinMinPrice.getCoinName());
-            return;
+            return currentWalletCoin.getAmount().multiply(coinMinPrice.getLastPrice());
         }
 
-        List<CoinPrice> growingCoins = client.getFullCoinPrices(coinMinPrice.getCoinName(), "15m")
+        List<String> coinsFromDynamo = new ArrayList<>(dynamoDbService.loadDynamoWallet().stream()
+                .map(WalletCoin::getName)
+                .toList());
+        coinsFromDynamo.add(coinMinPrice.getCoinName());
+
+        List<CoinPrice> growingCoins = client.getFullCoinPrices(coinsFromDynamo, "15m")
                 .stream()
                 .filter(this::filterCoinPrice)
                 .sorted(Comparator.comparing(CoinPrice::getPriceChangePercent, Comparator.reverseOrder()))
                 .toList();
 
-        WalletCoin currentWalletCoin = dynamoDbService.getCoin(coinMinPrice.getCoinName());
-
         if (CollectionUtils.isNullOrEmpty(growingCoins)) {
             if (USDT_COIN_NAME.equals(coinMinPrice.getCoinName())) {
                 log.info("Keep USDT coin");
-                return;
+                return currentWalletCoin.getAmount().multiply(coinMinPrice.getLastPrice());
             }
             log.info("No growing coins, converting to USDT");
-            operationService.saveUsdtOperation(coinMinPrice, currentWalletCoin);
-            return;
+            return  operationService.saveUsdtOperation(coinMinPrice, currentWalletCoin);
         }
 
         CoinPrice convertCoin = growingCoins.getFirst();
         log.info("Convert {} to {}", coinMinPrice.getCoinName(), convertCoin.getCoinName());
-        operationService.saveOperation(coinMinPrice, convertCoin, currentWalletCoin);
+        return operationService.saveOperation(coinMinPrice, convertCoin, currentWalletCoin);
     }
 
     private boolean filterCoinPrice(CoinPrice coinPrice) {

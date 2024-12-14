@@ -25,7 +25,6 @@ public class PriceDiffService {
     private static final String NEGATIVE_METRIC_TOTAL_NAME = "NegativeTotalSellCount";
     private static final String METRIC_NAMESPACE = "Crypto";
     private static final String LOCAL_METRIC_NAMESPACE = "CryptoTest";
-    private static final String WALLET_TOTAL_METRIC_NAME = "WalletUSDT";
 
     private final CloudWatchClient cloudWatchClient;
     private final Boolean isLocal;
@@ -94,15 +93,11 @@ public class PriceDiffService {
 
     public BigDecimal getConvertedAmount(BigDecimal amount, CoinPrice sourceCoin, CoinPrice targetCoin) {
         BigDecimal usdtSourceCost = amount.multiply(sourceCoin.getLastPrice());
-
-        this.submitMetric(usdtSourceCost.doubleValue(), WALLET_TOTAL_METRIC_NAME);
         return usdtSourceCost.divide(targetCoin.getLastPrice(), 8, RoundingMode.HALF_DOWN);
     }
 
     public BigDecimal getConvertedToUsdtAmount(BigDecimal amount, CoinPrice sourceCoin) {
         BigDecimal usdtSourceCost = amount.multiply(sourceCoin.getLastPrice());
-
-        this.submitMetric(usdtSourceCost.doubleValue(), WALLET_TOTAL_METRIC_NAME);
         return usdtSourceCost.divide(BigDecimal.ONE, 8, RoundingMode.HALF_DOWN);
     }
 }
