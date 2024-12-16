@@ -128,4 +128,10 @@ public class PriceDiffServiceTest {
         // verify
         assertEquals(100d, res.doubleValue());
     }
+
+    @Test
+    public void priceDiff() {
+        BigDecimal res = priceDiffService.priceDiff(BigDecimal.valueOf(160), BigDecimal.valueOf(240));
+        assertEquals(50D, res.doubleValue());
+    }
 }

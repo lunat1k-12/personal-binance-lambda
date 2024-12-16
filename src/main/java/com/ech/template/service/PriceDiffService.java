@@ -29,6 +29,12 @@ public class PriceDiffService {
     private final CloudWatchClient cloudWatchClient;
     private final Boolean isLocal;
 
+    public BigDecimal priceDiff(BigDecimal oldPrice, BigDecimal newPrice) {
+        return newPrice.subtract(oldPrice)
+                .divide(oldPrice, 8, RoundingMode.HALF_UP)
+                .multiply(BigDecimal.valueOf(100));
+    }
+
     public String getPriceDiff(CoinPrice currentPrice, CoinOperationRecord oldPriceOperation) {
 
         if (oldPriceOperation == null) {
@@ -39,9 +45,7 @@ public class PriceDiffService {
         BigDecimal oldPrice = new BigDecimal(oldPriceOperation.getBuyCoinPrice());
         BigDecimal newPrice = currentPrice.getLastPrice();
 
-        BigDecimal result = newPrice.subtract(oldPrice)
-                .divide(oldPrice, 8, RoundingMode.HALF_UP)
-                .multiply(BigDecimal.valueOf(100));
+        BigDecimal result = priceDiff(oldPrice, newPrice);
 
         if (result.compareTo(BigDecimal.ZERO) < 0) {
             log.info("Coin price dropped by {} %", result.toPlainString());

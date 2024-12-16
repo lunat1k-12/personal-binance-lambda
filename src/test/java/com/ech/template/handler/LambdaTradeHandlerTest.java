@@ -47,7 +47,7 @@ public class LambdaTradeHandlerTest {
     public void setUp() {
         this.lambdaTradeHandler = new LambdaTradeHandler(client,
                 dynamoDbService, new OperationService(dynamoDbService, priceDiffService, ipCheckClient),
-                metricsService);
+                metricsService, priceDiffService);
     }
 
     @Test
@@ -75,6 +75,48 @@ public class LambdaTradeHandlerTest {
                 .name("USDT")
                 .amount(BigDecimal.valueOf(1))
                 .lastOperation(1L).build());
+
+        // do
+        lambdaTradeHandler.handleRequest(new LambdaTradeHandler.LambdaInput(), null);
+
+        // verify
+        verify(dynamoDbService, times(2)).getCoin(anyString());
+        verify(dynamoDbService, times(0)).deleteCoinFromWallet(anyString());
+        verify(dynamoDbService, times(0)).saveOperation(any());
+        verify(dynamoDbService, times(2)).saveCoin(any(), any());
+    }
+
+    @Test
+    public void handleRequestKeepOperationCoin() {
+        // given
+        List<WalletCoin> wallet = List.of(WalletCoin.builder()
+                .name("COIN")
+                .lastOperation(12L)
+                .amount(BigDecimal.valueOf(200))
+                .build());
+        when(dynamoDbService.loadDynamoWallet()).thenReturn(wallet);
+        List<String> walletCoins = List.of("COIN");
+        CoinPrice coinPrice = new CoinPrice("COINUSDT",
+                BigDecimal.ONE, BigDecimal.valueOf(5), BigDecimal.ONE, BigDecimal.ONE, BigDecimal.ONE);
+        when(client.getMinutesPrices(eq(walletCoins), eq("2m"))).thenReturn(List.of(coinPrice));
+
+        CoinPrice usdtCoin = new CoinPrice(USDT_COIN_NAME,
+                BigDecimal.ONE, BigDecimal.ONE,
+                BigDecimal.ONE, BigDecimal.ONE,
+                BigDecimal.ONE);
+        when(client.getUsdtCoinPrice()).thenReturn(usdtCoin);
+
+        when(dynamoDbService.getCoin("COIN")).thenReturn(wallet.getFirst());
+        when(dynamoDbService.getCoin(eq("USDT"))).thenReturn(WalletCoin.builder()
+                .name("USDT")
+                .amount(BigDecimal.valueOf(1))
+                .lastOperation(1L).build());
+
+        when(dynamoDbService.getOperationById(eq(12L))).thenReturn(CoinOperationRecord.builder()
+                .buyCoinPrice("1.045")
+                .build());
+
+        when(priceDiffService.priceDiff(any(BigDecimal.class), any(BigDecimal.class))).thenReturn(BigDecimal.ONE);
 
         // do
         lambdaTradeHandler.handleRequest(new LambdaTradeHandler.LambdaInput(), null);
@@ -118,6 +160,7 @@ public class LambdaTradeHandlerTest {
                 .name("USDT")
                 .amount(BigDecimal.valueOf(1))
                 .lastOperation(1L).build());
+        when(priceDiffService.priceDiff(any(BigDecimal.class), any(BigDecimal.class))).thenReturn(BigDecimal.ONE);
 
         // do
         lambdaTradeHandler.handleRequest(new LambdaTradeHandler.LambdaInput(), null);
@@ -127,7 +170,7 @@ public class LambdaTradeHandlerTest {
         verify(client).getMinutesPrices(eq(walletCoins), eq("2m"));
         verify(client, times(2)).getFullCoinPrices(any(), anyString());
         verify(dynamoDbService).getCoin(eq("COIN"));
-        verify(dynamoDbService).getOperationById(eq(12L));
+        verify(dynamoDbService, times(2)).getOperationById(eq(12L));
         verify(priceDiffService).getPriceDiff(any(), any());
 
         verify(dynamoDbService).deleteCoinFromWallet(eq("COIN"));

@@ -17,6 +17,10 @@ public class OperationService {
     private final PriceDiffService priceDiffService;
     private final IpCheckClient ipCheckClient;
 
+    public CoinOperationRecord getOperationRecord(Long id) {
+        return dynamoDbService.getOperationById(id);
+    }
+
     public BigDecimal saveUsdtOperation(CoinPrice sourcePrice, WalletCoin currentWalletCoin) {
         Long operationId = Instant.now().toEpochMilli();
 

@@ -5,12 +5,14 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.ech.template.model.Balance;
 import com.ech.template.model.BalanceResponse;
 import com.ech.template.model.CoinPrice;
+import com.ech.template.model.dynamodb.CoinOperationRecord;
 import com.ech.template.model.dynamodb.WalletCoin;
 import com.ech.template.module.CommonModule;
 import com.ech.template.service.BinanceClient;
 import com.ech.template.service.DynamoDbService;
 import com.ech.template.service.MetricsService;
 import com.ech.template.service.OperationService;
+import com.ech.template.service.PriceDiffService;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import lombok.AllArgsConstructor;
@@ -35,6 +37,7 @@ public class LambdaTradeHandler implements RequestHandler<LambdaTradeHandler.Lam
     private final DynamoDbService dynamoDbService;
     private final OperationService operationService;
     private final MetricsService metricsService;
+    private final PriceDiffService priceDiffService;
 
     public LambdaTradeHandler() {
         Injector injector = Guice.createInjector(new CommonModule());
@@ -42,6 +45,7 @@ public class LambdaTradeHandler implements RequestHandler<LambdaTradeHandler.Lam
         this.dynamoDbService = injector.getInstance(DynamoDbService.class);
         this.operationService = injector.getInstance(OperationService.class);
         this.metricsService = injector.getInstance(MetricsService.class);
+        this.priceDiffService = injector.getInstance(PriceDiffService.class);
     }
 
     public static void main(String[] args) {
@@ -105,11 +109,25 @@ public class LambdaTradeHandler implements RequestHandler<LambdaTradeHandler.Lam
         log.info("Current coin price: {}", coinMinPrice);
         WalletCoin currentWalletCoin = dynamoDbService.getCoin(coinMinPrice.getCoinName());
 
-        // negative price change in 2 minutes
-        if (!USDT_COIN_NAME.equals(coinMinPrice.getCoinName()) &&
-                coinMinPrice.getPriceChangePercent().compareTo(BigDecimal.ZERO) > 0) {
-            log.info("Keep the coin: {}", coinMinPrice.getCoinName());
-            return currentWalletCoin.getAmount().multiply(coinMinPrice.getLastPrice());
+        if (!USDT_COIN_NAME.equals(coinMinPrice.getCoinName())) {
+
+            CoinOperationRecord prevRecord = dynamoDbService.getOperationById(currentWalletCoin.getLastOperation());
+
+            if (prevRecord == null && coinMinPrice.getPriceChangePercent().compareTo(BigDecimal.ZERO) > 0) {
+                log.info("No previous record found. Keep the coin {}", coinMinPrice.getCoinName());
+                return currentWalletCoin.getAmount().multiply(coinMinPrice.getLastPrice());
+            }
+
+            BigDecimal currentTotalPrice = coinMinPrice.getLastPrice().multiply(currentWalletCoin.getAmount());
+            BigDecimal prevTotalPrice = BigDecimal.valueOf(Double.parseDouble(prevRecord.getBuyCoinPrice()))
+                    .multiply(currentWalletCoin.getAmount());
+            BigDecimal priceDiff = priceDiffService.priceDiff(prevTotalPrice, currentTotalPrice);
+
+            log.info("Price diff check %: {}", priceDiff);
+            if (priceDiff.doubleValue() < 30 && coinMinPrice.getPriceChangePercent().compareTo(BigDecimal.ZERO) > 0) {
+                log.info("Keep the coin: {}", coinMinPrice.getCoinName());
+                return currentWalletCoin.getAmount().multiply(coinMinPrice.getLastPrice());
+            }
         }
 
         List<String> coinsFromDynamo = new ArrayList<>(dynamoDbService.loadDynamoWallet().stream()
