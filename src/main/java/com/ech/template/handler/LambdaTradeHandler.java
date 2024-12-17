@@ -118,15 +118,17 @@ public class LambdaTradeHandler implements RequestHandler<LambdaTradeHandler.Lam
                 return currentWalletCoin.getAmount().multiply(coinMinPrice.getLastPrice());
             }
 
-            BigDecimal currentTotalPrice = coinMinPrice.getLastPrice().multiply(currentWalletCoin.getAmount());
-            BigDecimal prevTotalPrice = BigDecimal.valueOf(Double.parseDouble(prevRecord.getBuyCoinPrice()))
-                    .multiply(currentWalletCoin.getAmount());
-            BigDecimal priceDiff = priceDiffService.priceDiff(prevTotalPrice, currentTotalPrice);
+            if (prevRecord != null) {
+                BigDecimal currentTotalPrice = coinMinPrice.getLastPrice().multiply(currentWalletCoin.getAmount());
+                BigDecimal prevTotalPrice = BigDecimal.valueOf(Double.parseDouble(prevRecord.getBuyCoinPrice()))
+                        .multiply(currentWalletCoin.getAmount());
+                BigDecimal priceDiff = priceDiffService.priceDiff(prevTotalPrice, currentTotalPrice);
 
-            log.info("Price diff check %: {}", priceDiff);
-            if (priceDiff.doubleValue() < 15 && coinMinPrice.getPriceChangePercent().compareTo(BigDecimal.ZERO) > 0) {
-                log.info("Keep the coin: {}", coinMinPrice.getCoinName());
-                return currentWalletCoin.getAmount().multiply(coinMinPrice.getLastPrice());
+                log.info("Price diff check %: {}", priceDiff);
+                if (priceDiff.doubleValue() < 15 && coinMinPrice.getPriceChangePercent().compareTo(BigDecimal.ZERO) > 0) {
+                    log.info("Keep the coin: {}", coinMinPrice.getCoinName());
+                    return currentWalletCoin.getAmount().multiply(coinMinPrice.getLastPrice());
+                }
             }
         }
 
